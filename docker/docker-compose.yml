@@ -1,0 +1,25 @@
+version: "3"
+services:
+  finapp:
+    image: citywideiowa0/finapp
+    container_name: finapp
+    build:
+      context: ..
+      dockerfile: ./Dockerfile
+    volumes:
+      - ../:/finapp/
+    networks:
+    - finapp
+  db:
+    image: mongo
+    container_name: mongo_db
+    restart: always
+    networks:
+      - finapp
+    expose:
+    - "27107"
+networks:
+  finapp:
+    driver: bridge
+
+

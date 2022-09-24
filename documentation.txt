@@ -1,0 +1,85 @@
+Workflow -
+
+1. Hardcode transactions, assign an ID for each transaction and add it to a document for that page
+
+
+MongoDB NoSQL Schema = 
+db = ['finapp']
+
+each month has it's own document with transactions ["month year"]
+for month-to-month info ['meta']
+the current cursor is located ['meta']['cursor']
+relevant transaction information is loaded into ['transactions']
+  - this includes whether or not that transaction has been placed into
+    a category, or is still uncategorized 
+
+
+Raw Transaction schema - 
+{
+  "account_id": "NBEXPX6BpECYBZd18bovf8AV5QgNd7FQDOZx8",
+  "account_owner": null,
+  "amount": 1200.0,
+  "authorized_date": null,
+  "authorized_datetime": "2022-08-31 04:00:00+00:00",
+  "category": [
+    "Transfer",
+    "Third Party",
+    "Venmo"
+  ],
+  "category_id": "21010001",
+  "check_number": null,
+  "date": "2022-09-04",
+  "datetime": "2022-09-03 17:24:39+00:00",
+  "iso_currency_code": "USD",
+  "location": {
+    "address": null,
+    "city": null,
+    "country": null,
+    "lat": null,
+    "lon": null,
+    "postal_code": null,
+    "region": null,
+    "store_number": null
+  },
+  "merchant_name": null,
+  "name": "Venmo",
+  "payment_channel": "other",
+  "payment_meta": {
+    "by_order_of": null,
+    "payee": null,
+    "payer": null,
+    "payment_method": null,
+    "payment_processor": "Braintree",
+    "ppd_id": null,
+    "reason": null,
+    "reference_number": null
+  },
+  "pending": false,
+  "pending_transaction_id": null,
+  "personal_finance_category": null,
+  "transaction_code": null,
+  "transaction_id": "O3R4q4L3pRFd3bwLDKxoUQz8X8eka3tgVZNbb",
+  "transaction_type": "special",
+  "unofficial_currency_code": null
+}
+
+
+
+relevant raw transaction information - 
+  "amount"
+  "authorized_datetime"
+  "name"
+  "transaction_id"
+
+added transaction information - 
+  "category" 
+
+Final transaction schema - 
+  * inside ["month year"]["transactions"]
+  "transaction_id"
+  "authorized_datetime"
+  "name"
+  "amount"
+  "category"
+  
+

@@ -44,16 +44,17 @@ def update_transaction_cursor(new_cursor):
   c_meta.update_one({'_id':'curr_transaction_cursor'}, update_curr , upsert=True)
   return True
 
-def log_transaction(squeezed_transaction, update=False):
+def log_transaction(squeezed_transaction, update=False, collection_name=utils.curr_month_year()):
+  c = db[collection_name]
   id_filter = {"_id": squeezed_transaction['_id']}
-  if c_month.find_one(filter=id_filter):
+  if c.find_one(filter=id_filter):
     if update == True:
       print(f"Updating Transaction {squeezed_transaction['_id']}: ", squeezed_transaction)
-      c_month.update_one(id_filter, { "$set": squeezed_transaction})
+      c.update_one(id_filter, { "$set": squeezed_transaction})
     else:
-      print("Transaction Already Logged: ", squeezed_transaction)
+      print("Already Logged", end='')
   else:
-    c_month.insert_one(squeezed_transaction)
+    c.insert_one(squeezed_transaction)
 
 def print_meta():
   print("Printing Meta Collection...")

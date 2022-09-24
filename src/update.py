@@ -1,7 +1,9 @@
 
 # Standard Library Imports
 import os
+import re
 from dotenv import load_dotenv
+import calendar
 
 # 3rd Pary Imports
 import openpyxl as xl
@@ -37,9 +39,16 @@ cookbook.update_transaction_cursor(new_cursor)
 
 # Log each transaction in the database
 for i, raw_transaction in enumerate(raw_transactions):
-  print(f"Logging transaction {i}:")
+  print(f"Logging transaction {i}: ", end = '')
   transaction = cookbook.squeeze_transaction(raw_transaction)
-  # cookbook.categorize(transaction)
-  cookbook.log_transaction(transaction)
-
+  date = transaction['date_authorized']
+  if date == None:
+    cookbook.log_transaction(transaction)
+  else:
+    split_date = re.split("/|\(", date)
+    month = calendar.month_abbr[int(split_date[0])]
+    year = split_date[2]
+    date = f"{month} {year}"
+    cookbook.log_transaction(transaction, collection_name=date)
+  print(f" in {date}")
 cookbook.print_collection_month()

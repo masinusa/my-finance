@@ -8,10 +8,12 @@ def categorize(transaction):
     category = 'the_rounds'
   elif 'Uber Eats' in name:
     category = 'takeout'
+  elif 'UBER BUSBOYSA' in name:
+    category = 'takeout'
   elif 'TOTAL SOURCE FI' in name:
     category = 'gym'
   elif 'ACH Withdrawal PEPCO PAYMENTUS BILLPAY' in name:
-    category = 'electricty'
+    category = 'electricity'
   elif 'VOLO SPORT* SPO' in name:
     category = 'volo'
   elif 'NNT MICROSOFT*X'in name:

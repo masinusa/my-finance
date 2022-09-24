@@ -125,6 +125,7 @@ class Workbook(xl.Workbook):
     return values
 
 
+  # TODO: assume sheet is workbook's active sheet
   def update_value(self, value_name, value, sheet, template=None):
     if template == None:
       t_path = self._get_template_path(sheet)

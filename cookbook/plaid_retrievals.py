@@ -76,8 +76,11 @@ def get_transactions(access_t, cursor_param):
         return error_response
 
 def squeeze_transaction(transaction):
+  date_time = transaction["authorized_datetime"]
+  if date_time is not None:
+    date_time = date_time.strftime("%m/%d/%Y(%H:%M)")
   return {"_id": transaction["transaction_id"],
-                        "date_authorized": transaction["authorized_datetime"],
+                        "date_authorized": date_time,
                         "name": transaction["name"],
                         "amount": transaction["amount"],
                         "category": "N/A"}

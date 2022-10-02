@@ -69,12 +69,24 @@ def remove_meta_document(filter):
 def rm_month_documents():
   c_month.delete_many({})
 
-def print_collection_month():
+def print_collection_month(filter={}):
   print(f"Printing '{utils.curr_month_year()}' Collection...")
   # print(utils.pretty_print_response(c_month.find()))
-  cursor = c_month.find()
+  cursor = c_month.find(filter)
   for i, record in enumerate(cursor):
     print("document", i, ": ", record)
+
+def get_collection_month(filter={}):
+  print(f"Printing '{utils.curr_month_year()}' Collection...")
+  documents = []
+  # print(utils.pretty_print_response(c_month.find()))
+  cursor = c_month.find(filter)
+  for doc in cursor:
+    documents.append(doc)
+  return documents
+
+
+
 
 def get_uncategorized_transactions():
   transactions = []

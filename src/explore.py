@@ -33,41 +33,48 @@ _workbook_path = os.getcwd() + '/' + WORKBOOK
 
 workbook = cookbook.Workbook(_workbook_path, CURRENT_TEMPLATE)
 
-# +---------------+
-# | Helpers  |
-# +---------------+-------------------------------------------------------------
 
-def last_transaction(access_t):
-  return cookbook.get_transactions(access_t)[-2]
+# Load access tokens for each bank
+access_tokens = secrets.access_tokens
 
 
-def print_transaction(transaction):
-  cookbook.pretty_print_response(transaction)
 
-def print_transaction_filtered(transaction):
-  pass
+# +----------------------+
+# | !!! EXPLORE !!!      |
+# +----------------------+-------------------------------------------------------------
 
-# +---------------+
-# | explore |
-# +---------------+-------------------------------------------------------------
-print(cookbook.remove_meta_document({'_id': 'curr_transaction_cursor'}))
-print(cookbook.remove_meta_document({'_id': 'prev_transaction_cursor'}))
-cookbook.print_meta()
 
-print("removing all monthly transactions")
-cookbook.rm_month_documents()
-cookbook.print_collection_month()
+# +--------------------------------------+
+# | Clear Current Month's Collection     |
+# +--------------------------------------+-------------------------------------------------------------
 
-# last_transaction = last_transaction(access_tokens['Discover'])
 
-# print_transaction(last_transaction)
-# for key in last_transaction.keys():
-#   # print(key)
-#   pass
-# client = pymongo.MongoClient("mongodb://mongo_db:27017/")
-# client.drop_database('customersdb')
-# print(client.list_database_names())
+# print(cookbook.remove_meta_document({'_id': 'curr_transaction_cursor'}))
+# print(cookbook.remove_meta_document({'_id': 'prev_transaction_cursor'}))
+# cookbook.print_meta()
 
+# print("removing all monthly transactions")
+# cookbook.rm_month_documents()
+# cookbook.print_collection_month()
+
+
+# +--------------------------------------------+
+# | list and tally This month's transactions by category |
+# +--------------------------------------------+-------------------------------------------------------------
+
+# transactions = cookbook.get_collection_month({'category': 'takeout'})
+# total = 0
+# for t in transactions:
+#   total += t['amount']
+#   print(t['date_authorized'], ": ", t['amount'], "--- Running Total: ", total)
+# print("TOTAL FOR TAKEOUT: ", total)
+
+# +--------------------------------------------+
+# | Look at raw transactions |
+# +--------------------------------------------+-------------------------------------------------------------
+
+last_transaction = cookbook.get_transactions(access_tokens['Discover'], '')
+cookbook.pretty_print_response(last_transaction)
 
 # print(workbook.get_balance('access-development-c7111519-5691-488f-91af-2abb32cdc219'))
 

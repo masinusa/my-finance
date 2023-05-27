@@ -83,3 +83,8 @@ Final transaction schema -
   "category"
   
 
+# Notes:
+Have a flask implementations and streamlit implementations.
+Have a seperate directory for plaid api
+Just use plaid for what I can, but also be able to add custom transactions
+Should be able to visualize and see the transactional database

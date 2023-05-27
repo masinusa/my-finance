@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+  <script>
+  var test;
+  fetch('/test')
+    .then(res => res.json())
+    .then(data => {
+      document.write("HELLO1!");
+      test = data.greeting;
+      document.write(test)
+      console.log(test);
+    })
+  document.write('asynchronous hello');
+  </script>
+</html>

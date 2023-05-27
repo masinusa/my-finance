@@ -1,0 +1,12 @@
+
+FROM python:3.9-slim
+
+COPY . /finapp
+
+RUN pip3 install -r /finapp/dockerfiles/requirements.txt
+
+WORKDIR /finapp/src/gui_container
+
+EXPOSE 8501
+
+CMD ["streamlit", "run", "Home.py", "--server.port=8501", "--server.address=0.0.0.0"]

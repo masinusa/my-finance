@@ -1,0 +1,73 @@
+version: "3"
+services:
+  gui:
+    image: citywideiowa0/finapp_gui
+    container_name: gui
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    build:
+      context: .
+      dockerfile: ./dockerfiles/gui_Dockerfile
+    volumes:
+      - .:/finapp/
+    networks:
+      - finapp_net
+    ports:
+      - "8501:8501" # Streamlit
+  
+  plaid:
+    image: citywideiowa0/finapp_plaid
+    container_name: plaid
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    build:
+      context: .
+      dockerfile: ./dockerfiles/plaid_Dockerfile
+    command:  python3 -m flask run --debug --host=0.0.0.0
+    volumes:
+      - .:/finapp/
+    networks:
+      - finapp_net
+    ports:
+      - "5000:5000" # Flask
+
+
+  db:
+    image: mongo
+    container_name: mongo
+    restart: always
+    networks:
+      - finapp_net
+    environment:
+    - MONGO_INITDB_ROOT_USERNAME=rootuser
+    - MONGO_INITDB_ROOT_PASSWORD=rootpass
+    expose:
+      - "27017"
+    volumes:
+      - 'mongodb:/data/db/'
+
+  db-admin:
+    image: mongo-express
+    container_name: db-admin
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongo
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=rootuser
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=rootpass
+      - ME_CONFIG_MONGODB_PORT:27017
+    depends_on:
+        - db
+    networks:
+      - finapp_net
+    ports:
+      - "8081:8081"
+    volumes:
+      - mongodb:/data/db/
+
+
+networks:
+  finapp_net:
+    driver: bridge
+volumes:
+  mongodb:
+
+

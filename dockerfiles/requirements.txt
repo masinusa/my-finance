@@ -1,0 +1,22 @@
+
+# microservice infrastructure
+Flask==2.1.0
+
+# plaid
+plaid_python==9.1.0
+itsdangerous==2.0.1
+
+streamlit
+
+# mongo
+pymongo
+
+# xlsx
+openpyxl==3.0.10
+
+# general
+python-dotenv==0.20.0
+pyyaml==6.0
+plaid-python
+pandas
+configparser

@@ -5,6 +5,7 @@ Features Idea list:
 - List transactions
 - Tally total net worth
 - compare best prices for something
+- Receipt OCR, NLP, and Information Extraction: https://medium.com/one9-tech/information-extraction-receipt-ocr-scan-deep-learning-1e68ce5a9ae7
 
 
 steps to run quickstart from scratch:
@@ -26,3 +27,18 @@ TO-DO reminders:
 Notes:
 - the explore target simply runs the src/explore script for easily executing code in the container... should maybe just attach to the container to start with or something
 
+DB Schema:
+
+DB - Collection - Document
+PlaidDB
+  - user_tokens
+    - link_token
+    - plaid_client_id
+    - plaid_secret
+  - bank_tokens
+    - chase
+    - alliant
+    - discover
+TransactionsDB
+  - april_2023
+    - ...

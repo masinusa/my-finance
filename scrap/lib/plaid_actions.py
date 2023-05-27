@@ -18,7 +18,7 @@ st.write(secrets.__dict__.keys())
 PLAID_CLIENT_ID = secrets.PLAID_CLIENT_ID
 PLAID_SECRET = secrets.PLAID_SECRET
 
-host = plaid.Environment.Development
+host = plaid.Environment.Sandbox
 configuration = plaid.Configuration(
     host=host,
     api_key={

@@ -66,7 +66,7 @@ PLAID_SECRET = '4c45a3df6d7d8c6b5b72ee524f43f4'
 # password: pass_good)
 # Use `development` to test with live users and credentials and `production`
 # to go live
-PLAID_ENV = 'development'
+PLAID_ENV = 'sandbox'
 # PLAID_PRODUCTS is a comma-separated list of products to use when initializing
 # Link. Note that this list must contain 'assets' in order for the plaid_link to be
 # able to create and retrieve asset reports.
@@ -240,7 +240,7 @@ def get_access_token(link_token):
     global access_token
     global item_id
     global transfer_id
-    public_token = request.form['public_token']
+    public_token = link_token
     try:
         exchange_request = ItemPublicTokenExchangeRequest(
             public_token=public_token)

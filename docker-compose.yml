@@ -23,13 +23,15 @@ services:
     build:
       context: .
       dockerfile: ./dockerfiles/plaid_Dockerfile
-    command:  python3 -m flask run --debug --host=0.0.0.0
+    command:  python3 -m flask run --host=0.0.0.0
     volumes:
       - .:/finapp/
     networks:
       - finapp_net
     ports:
       - "5000:5000" # Flask
+    environment:
+      - FLASK_DEBUG=1
 
 
   db:

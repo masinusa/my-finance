@@ -1,12 +1,12 @@
 
 import os
-from dotenv import load_dotenv
+import requests
+import sys
 
 import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
 
-import sys
 sys.path.append("/finapp/lib/")
 
 from utils.time import curr_month_year
@@ -18,7 +18,9 @@ from mongo_db import Mongo_Client
 # +------------------------------+
 # | Initialize Helpful Variables |
 # +------------------------------+---------------------------------------------
-
+test = st.button('test')
+if test:
+    st.write(requests.get('http://localhost:5000/test/'))
 # +-----------------------+
 # | Load Landing Page     |
 # +-----------------------+----------------------------------------------------

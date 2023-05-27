@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+    <head>
+      <h1>Welcome to Re-Authentication</h1>
+      <h2>Using Plaid Link</h2>
+
+      <h3>Accessible Banks</h3>
+      {% for bank in acc_banks %}
+      <form method="post" action="/">
+        <input type="submit" value="{{bank}}" name="action1"/>
+      </form>
+      {% endfor %}
+
+      <h3>Inaccessible Banks</h3>
+      {% for bank in inacc_banks %}
+      <form method="post" action="/">
+        <input type="submit" value="{{bank}}" name="action1"/>
+      </form>
+      {% endfor %}
+      
+      
+    </head>
+    <body>
+        <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+
+        <button type="button" id="link-account" class="btn btn-primary btn-dark btn-lg" style="
+              border: 1px solid black;
+              border-radius: 5px;
+              background: black;
+              width: 155px;
+              margin-top: 5; 
+              margin-left: 10;
+              color: white;
+            "><strong>Link account</strong></button>
+      
+      
+        <script>
+        const element = document.getElementById("link-account");
+        element.addEventListener("click", myFunction);
+        var token;
+        var handler;
+        fetch('/link_token')
+        .then(resp => { return resp.json(); })
+        .then(data => { 
+          token = data.token
+        })
+        .then(() => {
+          document.getElementById("link-account").innerHTML= "Opening Handler";
+          handler = Plaid.create({
+                  token: token,
+                  onSuccess:(public_token, metadata) => {
+                    document.getElementById("link-account").innerHTML = "Success";
+                    fetch('/exchange_public_token', {body: JSON.stringify(
+                      {public_token: public_token}
+                    )})
+                    
+                  },
+                  onEvent: (eventName, metadata) => {
+                    // document.getElementById("link-account").innerHTML = `${eventName}`;
+                    document.getElementById("link-account").innerHTML = 'Event';
+                    window.alert(String(eventName));
+                  },
+                  onExit: (error, metadata) => {
+                    document.getElementById("link-account").innerHTML = "Exit";
+                  },
+                })
+              });
+        function myFunction() {
+          document.getElementById("link-account").innerHTML = "Trying";
+            handler.open()
+        }
+        </script>
+    </body>
+</html>

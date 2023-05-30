@@ -31,14 +31,18 @@ DB Schema:
 
 DB - Collection - Document
 PlaidDB
-  - user_tokens
+  - userTokens
     - link_token
     - plaid_client_id
     - plaid_secret
-  - bank_tokens
+  - bankTokens
     - chase
     - alliant
     - discover
+  - transactionCursors
+    - cursor/last_updated/bank_name
 TransactionsDB
   - april_2023
     - ...
+MonthlyDB
+  - april_2023

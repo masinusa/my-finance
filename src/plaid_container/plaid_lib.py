@@ -209,9 +209,7 @@ def get_auth(access_token):
 
 
 # @plaid_link.route('/api/transactions', methods=['GET'])
-def get_transactions():
-    # Set cursor to empty to receive all historical updates
-    cursor = ''
+def get_transactions(bank_name, access_token, cursor:str = ''):
 
     # New transaction updates since "cursor"
     added = []
@@ -237,7 +235,7 @@ def get_transactions():
 
         # Return the 8 most recent transactions
         latest_transactions = sorted(added, key=lambda t: t['date'])[-8:]
-        return jsonify({
+        return cursor, jsonify({
             'latest_transactions': latest_transactions})
 
     except plaid.ApiException as e:
@@ -269,7 +267,7 @@ def get_identity(access_token):
 
 
 # @plaid_link.route('/api/balance', methods=['GET'])
-def get_balance():
+def get_balance(access_token):
     try:
         request = AccountsBalanceGetRequest(
             access_token=access_token

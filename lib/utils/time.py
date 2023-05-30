@@ -23,8 +23,30 @@ def curr_month():
 def curr_year():
   return str(datetime.now().year)
 
+
+# _____ TIME STAMP _____
 def timestamp():
   return str(datetime.now()).split()[0]
+
+def timestamp_to_int(timestamp):
+  split = timestamp.split('-')
+  return int(split[0])*1000 + int(split[1])*100 + int(split[2])
+
+def int_to_timestamp(val):
+  year, remainder = divmod(val, 1000)
+  month, remainder = divmod(remainder, 100)
+  day = remainder
+  if month < 10:
+    month = f"0{month}"
+  if day < 10:
+    day = f"0{day}"
+  return f"{year}-{month}-{day}"
+
+def datetime_to_timestamp(dt: datetime) -> str:
+  return dt.strftime("%Y-%m-%d")
+
+
+
 
 def curr_month_year(relative_month: int = 0) -> str:
   """

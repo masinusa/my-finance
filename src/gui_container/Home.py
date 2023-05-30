@@ -10,17 +10,18 @@ import pandas as pd
 sys.path.append("/finapp/lib/")
 
 from utils.time import curr_month_year
-import my_plaid
 
 
-from mongo_db import Mongo_Client
 
 # +------------------------------+
 # | Initialize Helpful Variables |
 # +------------------------------+---------------------------------------------
-test = st.button('test')
-if test:
-    st.write(requests.get('http://localhost:5000/test/'))
+# test = st.button('test')
+# if test:
+#     st.write(requests.get('http://localhost:5000/test/'))
+
+# 
+
 # +-----------------------+
 # | Load Landing Page     |
 # +-----------------------+----------------------------------------------------

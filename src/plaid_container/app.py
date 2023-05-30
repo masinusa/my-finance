@@ -16,8 +16,10 @@ base_container_path = str(Path(os.path.abspath(__file__)).parents[1]).replace('\
 if base_container_path not in sys.path:
     sys.path.append(base_container_path)
 
+sys.path.append('/finapp/')
 import plaid_lib
-import mongo
+import plaid_utils
+import lib.mongo.mongo as mongo
 
 # +---------------+
 # | Initialize App      |
@@ -28,7 +30,7 @@ def create_app() -> Flask:
 
     # Setup logger
     logger = logging.getLogger(__name__)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
     handler=logging.FileHandler("/finapp/logs/plaid_api_processing.log")
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
@@ -106,8 +108,10 @@ def plaid_link():
         inaccessible_banks.append(doc['bank_name'])
     return render_template('index.html', token = app.token, acc_banks=accessible_banks, inacc_banks=inaccessible_banks)
 
+
+
 # +-----------------------+
-# | Plaid API Routes      |
+# | GUI ROUTES      |
 # +---------------+------------------------------------------------------------
 
 @app.route('/link_token', methods=['GET', 'POST'])
@@ -121,7 +125,9 @@ def token_api():
         print(request.get_json())  # parse as JSON
         return 'Sucesss', 200
 
-
+# +-----------------------+
+# | Plaid API ROUTES    |
+# +---------------+------------------------------------------------------------
 # Checks whether or not the user has an access token for a financial institution
 # TODO
 @app.route('/is_user_connected', methods=['GET'])
@@ -145,9 +151,48 @@ def exchange_public_token():
     response = plaid_lib.get_access_token(public_token)
     access_token = response['access_token']
     bank_name = plaid_lib.item(access_token)['institution']['name']
-    app.logger.info("Entered exchange public token and storing it now")
     mongo.set_access_token(access_token=access_token, bank_name=bank_name)
     return response
+
+
+@app.route('/api/get_balance', methods=['GET'])
+def get_balance():
+    app.logger.info("GET /api/exchange_public_token")
+    access_token = request.args.get('access_token')
+    bank_name = plaid_lib.item(access_token)['institution']['name']
+    response = plaid_lib.get_balance(access_token)
+    for accounts in response.get_json()['accounts']:
+          balance = accounts['balances']['current']
+          institution = f"{bank_name} - {accounts['name']}"
+          app.logger.info(f"saving {institution} balance")
+          mongo.set_institution_balance(
+                institution,
+                balance)
+    return response
+
+
+@app.route('/api/get_transactions', methods=['GET'])
+def get_transactions():
+    app.logger.info("GET /api/get_transactions")
+    access_token = request.args.get('access_token')
+
+    bank_name = plaid_lib.item(access_token)['institution']['name']
+    cursor = mongo.get_transaction_cursor(bank_name)
+    cursor, transactions = plaid_lib.get_transactions(bank_name=bank_name, 
+                                              cursor=cursor, 
+                                              access_token=access_token)
+    app.logger.debug(f"{type(transactions.get_json()['latest_transactions'])}")
+    app.logger.debug(f"{str(transactions.get_json()['latest_transactions'])}")
+
+    count = 0
+    for transact in transactions.get_json()['latest_transactions']:
+        squeezed_transaction = plaid_utils.squeeze_transaction(bank_name, transact)
+        app.logger.debug(str(squeezed_transaction))
+        mongo.set_transaction(squeezed_transaction, month_offset=0)
+        count += 1
+    
+    mongo.set_transaction_cursor(bank_name, cursor)
+    return f"Updated {count} Transactions"
 
 
 if __name__ == "__main__":

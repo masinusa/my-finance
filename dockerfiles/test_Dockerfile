@@ -1,0 +1,10 @@
+
+FROM python:3.9-slim
+
+COPY . /finapp
+
+RUN pip3 install -r /finapp/dockerfiles/test_requirements.txt
+
+WORKDIR /finapp/
+
+CMD ["/bin/bash"]

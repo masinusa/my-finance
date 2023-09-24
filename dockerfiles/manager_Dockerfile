@@ -4,7 +4,7 @@ COPY . /finapp
 
 RUN pip3 install -r /finapp/dockerfiles/requirements.txt
 
-WORKDIR /finapp/src/plaid_api
+WORKDIR /finapp/src/manager
 EXPOSE 5000
 
 ENV FLASK_DEBUG=1

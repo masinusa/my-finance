@@ -1,5 +1,4 @@
 import logging
-import json
 
 import pymongo
 
@@ -25,13 +24,13 @@ client = pymongo.MongoClient("mongodb://rootuser:rootpass@mongo:27017/")
 bankTokens = client.plaidDB.bankTokens
 transactionCursors = client.plaidDB.transactionCursors
 
-def get_access_token(institution: str) -> str:
-    doc = bankTokens.find_one({"institution": institution})
-    return json.jsonify({'institution': doc['institution'], 'access_token': doc['access_token']})
+def get_access_token(bank_name: str) -> str:
+    doc = bankTokens.find_one({"bank_name": bank_name})
+    return doc['access_token']
 
-def set_access_token(access_token: str, institution: str, working: bool = True) -> None:
+def set_access_token(access_token: str, bank_name: str, working: bool = True) -> None:
     bankTokens.update_one(
-        {'institution': institution},
+        {'bank_name': bank_name},
         {"$set":{"access_token": access_token,  
                  'working': working, 
                  'last_updated': utils.time_.timestamp()}},

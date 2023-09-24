@@ -1,4 +1,12 @@
-version: "3"
+# version: "3"
+volumes:
+  mongodb:
+  example-mongodb:
+
+networks:
+  finapp_net:
+    driver: bridge
+
 services:
   gui:
     image: citywideiowa0/finapp_gui
@@ -8,14 +16,53 @@ services:
     build:
       context: .
       dockerfile: ./dockerfiles/gui_Dockerfile
+    command: "streamlit run Home.py --server.port=8501 --server.allowRunOnSave=true --server.runOnSave=true --server.address=0.0.0.0"
     volumes:
       - .:/finapp/
     networks:
       - finapp_net
     ports:
-      - "8501:8501" # Streamlit
-  
-  plaid:
+      - "80:8501" # Streamlit
+
+  manager:
+    image: citywideiowa0/finapp_manager
+    container_name: manager
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    build:
+      context: .
+      dockerfile: ./dockerfiles/manager_Dockerfile
+    command:  python3 -m flask run --host=0.0.0.0
+    volumes:
+      - .:/finapp/
+    networks:
+      - finapp_net
+    expose:
+      - "5000"
+    environment:
+      - FLASK_DEBUG=1
+
+  db_connector:
+    image: citywideiowa0/finapp_db_connector
+    container_name: db_connector
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    build:
+      context: .
+      dockerfile: ./dockerfiles/db_connector_Dockerfile
+    command:  python3 -m flask run --host=0.0.0.0
+    volumes:
+      - .:/finapp/
+    networks:
+      - finapp_net
+    expose:
+      - "5000" # Flask (DB Connector)
+    environment:
+      - FLASK_DEBUG=1
+
+###----- Shared/Base Services -----###
+
+  plaid_base:
     image: citywideiowa0/finapp_plaid
     container_name: plaid
     stdin_open: true # docker run -i
@@ -28,16 +75,34 @@ services:
       - .:/finapp/
     networks:
       - finapp_net
-    ports:
-      - "5000:5000" # Flask
+    expose:
+      - "5000" # Flask
     environment:
       - FLASK_DEBUG=1
+      - PLAID_ENV=development
+    profiles:
+      - base
 
+  db_explorer_base:
+    image: mongo-express
+    container_name: db_explorer
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongo
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=rootuser
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=rootpass
+      - ME_CONFIG_MONGODB_PORT:27017
+    networks:
+      - finapp_net
+    ports:
+      - "8081:8081"
+    volumes:
+      - mongodb:/data/db/
+    profiles:
+      - base
 
-  db:
+  db_base:
     image: mongo
     container_name: mongo
-    restart: always
     networks:
       - finapp_net
     environment:
@@ -45,31 +110,81 @@ services:
     - MONGO_INITDB_ROOT_PASSWORD=rootpass
     expose:
       - "27017"
+    profiles:
+      - base
+
+
+###----- Prod Services -----###
+
+  plaid:
+    extends: plaid_base
+    environment:
+      - PLAID_ENV=development
+    profiles:
+      - prod
+
+  db_explorer:
+    extends: db_explorer_base
+    volumes:
+      - 'example-mongodb:/data/db/'
+    profiles:
+      - prod
+      
+  db:
+    extends: db_base
     volumes:
       - 'mongodb:/data/db/'
+    profiles:
+      - prod
 
-  db-admin:
-    image: mongo-express
-    container_name: db-admin
+###----- Dev Services -----###
+
+  sandbox_plaid:
+    extends: plaid_base
+    environment:
+      - PLAID_ENV=sandbox
+    profiles:
+      - dev
+      - test
+ 
+  dev_db_explorer:
+    extends: db_explorer_base
+    volumes:
+      - 'example-mongodb:/data/db/'
+    profiles:
+      - dev
+      - test
+  
+  example_db:
+    extends: db_base
+    volumes:
+      - 'example-mongodb:/data/db/'
+    profiles:
+      - dev
+      - test
+
+  test:
+    image: citywideiowa0/finapp_test
+    build:
+      context: .
+      dockerfile: ./dockerfiles/test_Dockerfile
+    container_name: test
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
     environment:
       - ME_CONFIG_MONGODB_SERVER=mongo
       - ME_CONFIG_MONGODB_ADMINUSERNAME=rootuser
       - ME_CONFIG_MONGODB_ADMINPASSWORD=rootpass
       - ME_CONFIG_MONGODB_PORT:27017
-    depends_on:
-        - db
     networks:
       - finapp_net
-    ports:
-      - "8081:8081"
     volumes:
-      - mongodb:/data/db/
-
-
-networks:
-  finapp_net:
-    driver: bridge
-volumes:
-  mongodb:
-
-
+      - .:/finapp/
+    depends_on:
+      - sandbox_plaid
+      - example_db
+      - manager
+      - db_connector
+      - dev_db_explorer
+    profiles:
+      - test

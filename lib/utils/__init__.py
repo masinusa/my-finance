@@ -1,2 +1,2 @@
 from .main import *
-from . import time
+from . import time_

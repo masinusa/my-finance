@@ -1,5 +1,35 @@
 Excuse the Messiness.  This is a personal finance app in the making.
 
+# Core Architecture Diagram
+```mermaid
+graph TD;
+    Manager-->Plaid_API;
+    GUI-->Manager;
+    Manager-->Database_Connector;
+    Database_Connector-->Database;
+```
+# Intro
+```bash
+make up
+```
+
+# API
+
+## Balances
+
+### GET_BALANCES
+  """ Returns a given month's last recorded balances
+
+  Produces: 
+    balances: list[dict], [{institution: str, balance: int, last_updated: str},
+                           {institution: str, balance: int, last_updated: str},
+                           {...}, ...
+                          ]
+  """
+
+
+# Transactions
+
 
 Features Idea list:
 - List transactions
@@ -23,9 +53,12 @@ TO-DO reminders:
 - Check what happens if more than 26 columns and ASCII diverges from excel column names (since column names are in alphabetical order)
 - Next big step is having the transactions go to the right mongodb collection
 - Improve documentation
+- Tips for Initializing products: https://plaid.com/docs/link/initializing-products/
+  - more info, see 'products': https://plaid.com/docs/api/tokens/#linktokencreate
 
 Notes:
 - the explore target simply runs the src/explore script for easily executing code in the container... should maybe just attach to the container to start with or something
+- Radio buttons in table: https://discuss.streamlit.io/t/make-streamlit-table-results-hyperlinks-or-add-radio-buttons-to-table/7883/11
 
 DB Schema:
 

@@ -1,0 +1,12 @@
+pytest
+requests
+
+
+
+
+# general
+python-dotenv==0.20.0
+pyyaml==6.0
+plaid-python
+pandas
+configparser

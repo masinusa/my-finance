@@ -60,8 +60,8 @@ with st.sidebar:
         if resp_status != 200:
             for institution in [x for x in resp_status['institutions'] if x['code'] != 200]:
                 st.write(f"Failed to retrieve {institution['institution']}")
-        st.write('resp_status:')
-        st.write(resp_status)
+        # st.write('resp_status:')
+        # st.write(resp_status)
 
     
 # +------------------+

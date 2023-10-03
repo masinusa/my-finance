@@ -38,7 +38,6 @@ def create_app() -> Flask:
     logger.addHandler(handler)
     app.logger = logger
 
-
     # Get Public Token 
     collection = mongo.client.plaidDB.userTokens
     query = collection.find_one({"link_token": {"$exists": "true"}})
@@ -48,36 +47,6 @@ def create_app() -> Flask:
     else:
         token = query['link_token']
     app.token = token
-
-    # Update Bank Tokens
-    collection = mongo.client.plaidDB.bankTokens
-    banks = collection.find({"bank_name": {"$exists": "true"}})
-
-    def check_working(access_t):
-        PLAID_CLIENT_ID = '62edf4d4f8e7e40013eb8749'
-        PLAID_SECRET = '4c45a3df6d7d8c6b5b72ee524f43f4'
-
-        # host = plaid.Environment.Development
-        host = plaid.Environment.Sandbox
-        configuration = plaid.Configuration(
-            host=host,
-            api_key={
-                'clientId': PLAID_CLIENT_ID,
-                'secret': PLAID_SECRET,
-                'plaidVersion': '2020-09-14'
-            }
-        )
-        api_client = plaid.ApiClient(configuration)
-        app.plaid_client = plaid_api.PlaidApi(api_client)
-        request = AccountsBalanceGetRequest(
-            access_token=access_t
-        )
-        response = app.plaid_client.accounts_balance_get(request)
-        return True
-    # for bank in banks:
-    #     if not check_working(bank['access_token']):
-    #         collection.update_one({'_id':bank['_id']}, {"$set": {"working": False} }, upsert=True)
-        
 
     return app
 
@@ -102,14 +71,12 @@ def test() -> Response:
 def plaid_link():
     collection = mongo.client.plaidDB.bankTokens
     accessible_banks = []
-    for doc in collection.find({"working": True}):
-        accessible_banks.append(doc['bank_name'])
+    # for doc in collection.find({"working": True}):
+    #     accessible_banks.append(doc['bank_name'])
     inaccessible_banks = []
-    for doc in collection.find({"working": False}):
-        inaccessible_banks.append(doc['bank_name'])
+    # for doc in collection.find({"working": False}):
+    #     inaccessible_banks.append(doc['bank_name'])
     return render_template('index.html', token = app.token, acc_banks=accessible_banks, inacc_banks=inaccessible_banks)
-
-
 
 # +-----------------------+
 # | GUI ROUTES      |
@@ -155,7 +122,6 @@ def exchange_public_token():
     mongo.set_access_token(access_token=access_token, bank_name=bank_name)
     return response
 
-
 @app.route('/api/get_balance', methods=['GET'])
 def get_balance():
     """ Return balance of given access token 
@@ -193,8 +159,6 @@ def get_balance():
 
     return jsonify(result)
 
-
-
 @app.route('/api/get_transactions', methods=['GET'])
 def get_transactions():
     app.logger.info("GET /api/get_transactions")
@@ -214,7 +178,6 @@ def get_transactions():
     
     mongo.set_transaction_cursor(bank_name, cursor)
     return f"Updated {count} Transactions"
-
 
 if __name__ == "__main__":
     app.run(debug=True)

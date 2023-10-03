@@ -38,7 +38,7 @@ from plaid.model.transfer_user_in_request import TransferUserInRequest
 from plaid.model.ach_class import ACHClass
 from plaid.model.transfer_create_idempotency_key import TransferCreateIdempotencyKey
 from plaid.model.transfer_user_address_in_request import TransferUserAddressInRequest
-from plaid.api import plaid_api
+from plaid.api import plaid_api as plaid_api_
 from flask import Flask
 from flask import render_template
 from flask import request
@@ -97,31 +97,26 @@ PLAID_PRODUCTS = os.getenv('PLAID_PRODUCTS').split(',')
 PLAID_REDIRECT_URI = empty_to_none('PLAID_REDIRECT_URI')
 PLAID_COUNTRY_CODES = os.getenv('PLAID_COUNTRY_CODES').split(',')
 
-
-
-host = plaid.Environment.Sandbox
-
 if PLAID_ENV == 'sandbox':
     host = plaid.Environment.Sandbox
-
-if PLAID_ENV == 'development':
+elif PLAID_ENV == 'development':
     host = plaid.Environment.Development
-
-if PLAID_ENV == 'production':
+elif PLAID_ENV == 'production':
     host = plaid.Environment.Production
+else:
+    raise Exception("No plaid environment specified")
 
 
 configuration = plaid.Configuration(
     host=host,
     api_key={
         'clientId': PLAID_CLIENT_ID,
-        'secret': PLAID_SECRET,
-        'plaidVersion': '2020-09-14'
+        'secret': PLAID_SECRET
     }
 )
 
 api_client = plaid.ApiClient(configuration)
-client = plaid_api.PlaidApi(api_client)
+client = plaid_api_.PlaidApi(api_client)
 
 products = []
 for product in PLAID_PRODUCTS:
@@ -152,11 +147,20 @@ item_id = None
 
 # @plaid_link.route('/api/create_link_token', methods=['POST'])
 def create_link_token():
+    """ Create Plaid link token
+    
+    Returns:
+        {}
+    """
     try:
         logger.debug(f"Products (type/value): {str(type(products))}/{str(products)}")
+        logger.debug(f"{PLAID_ENV}")
+        logger.debug(f"{PLAID_SECRET}")
         request = LinkTokenCreateRequest(
-            products=products,
-            client_name="Plaid Quickstart",
+            products=[Products('transactions')],
+            required_if_supported_products=[Products('auth')],
+            optional_products=[Products('liabilities')],
+            client_name='Personal Finance App',
             country_codes=list(map(lambda x: CountryCode(x), PLAID_COUNTRY_CODES)),
             language='en',
             user=LinkTokenCreateRequestUser(
@@ -170,9 +174,8 @@ def create_link_token():
         return response.to_dict()
         # return jsonify(response.to_dict())
     except plaid.ApiException as e:
-        return json.loads(e.body)
-
-
+        response = json.loads(e.body)
+        raise Exception(f"Exception{response}")
 # Exchange token flow - exchange a Link public_token for
 # an API access_token
 # https://plaid.com/docs/#exchange-token-flow

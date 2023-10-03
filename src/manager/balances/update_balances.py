@@ -15,10 +15,16 @@ def update_balances(month_offset: int = 0):
   resp_status = {'status': 200, 'institutions':[]}
 
   # Get Existing Institutions
-  a_tokens = mongo.get_access_tokens()
-
-  # Get associated balance for each
-  for institution in a_tokens:
+  current_app.logger.info(f"Getting access tokens")
+  a_tokens = requests.get('http://db_connector:5000/database/access_tokens')
+  try: current_app.logger.info(f"Got access tokens:{a_tokens.json()}")
+  except Exception as e: 
+    current_app.logger.info(f"No access tokens stored")
+    return "No Access Tokens Saved"
+    
+  
+  # Get associated balance for each token/institution
+  for institution in a_tokens.json():
       a_t = institution['access_token']
       if institution['working']:
         # Request Institution's Balance
@@ -27,10 +33,13 @@ def update_balances(month_offset: int = 0):
             # logger.info(f"requesting balance for {a_t['bank_name']}")
             resp = requests.get('http://plaid:5000/api/get_balance', params={"access_token":a_t}, timeout=10)
             response = resp.json()
+            current_app.logger.debug(f"Received type response from plaid/api/get_balance: {type(response)}")
+            current_app.logger.debug(f"Received response from plaid/api/get_balance: {response}")
+            
             resp_status['institutions'].append(inst_token_status)
         except Exception as e:
             resp_status['status'] = 500
-            current_app.logger.exception(f"Failed to retrieve {institution['institution']}'s balance: {e.__class__.__name__}, {str(e)}")
+            current_app.logger.warning(f"Failed to retrieve {institution['institution']}'s balance: {e.__class__.__name__}, {str(e)}")
             inst_token_status.update({'code': 500,
                                 'error_name': e.__class__.__name__,
                                 'error_message': str(e)})
@@ -53,5 +62,6 @@ def update_balances(month_offset: int = 0):
 
           except Exception as e:
             current_app.logger.exception(f"Failed to retrieve {institution['institution']}'s balance: {e.__class__.__name__}")
-      return jsonify(resp_status)
+  current_app.logger.info(f"Returning: {resp_status}")
+  return jsonify(resp_status)
       

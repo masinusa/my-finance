@@ -1,12 +1,12 @@
 pytest
 requests
-
+flask
 
 
 
 # general
 python-dotenv==0.20.0
 pyyaml==6.0
-plaid-python
+plaid_python==9.1.0
 pandas
 configparser

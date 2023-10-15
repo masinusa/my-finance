@@ -38,7 +38,7 @@ from plaid.model.transfer_user_in_request import TransferUserInRequest
 from plaid.model.ach_class import ACHClass
 from plaid.model.transfer_create_idempotency_key import TransferCreateIdempotencyKey
 from plaid.model.transfer_user_address_in_request import TransferUserAddressInRequest
-from plaid.api import plaid_api
+from plaid.api import plaid_api as plaid_api_
 from flask import Flask
 from flask import render_template
 from flask import request
@@ -97,48 +97,39 @@ PLAID_PRODUCTS = os.getenv('PLAID_PRODUCTS').split(',')
 PLAID_REDIRECT_URI = empty_to_none('PLAID_REDIRECT_URI')
 PLAID_COUNTRY_CODES = os.getenv('PLAID_COUNTRY_CODES').split(',')
 
-
-
-host = plaid.Environment.Sandbox
-
 if PLAID_ENV == 'sandbox':
     host = plaid.Environment.Sandbox
-
-if PLAID_ENV == 'development':
+elif PLAID_ENV == 'development':
     host = plaid.Environment.Development
-
-if PLAID_ENV == 'production':
+elif PLAID_ENV == 'production':
     host = plaid.Environment.Production
+else:
+    raise Exception("No plaid environment specified")
 
 
 configuration = plaid.Configuration(
     host=host,
     api_key={
         'clientId': PLAID_CLIENT_ID,
-        'secret': PLAID_SECRET,
-        'plaidVersion': '2020-09-14'
+        'secret': PLAID_SECRET
     }
 )
 
 api_client = plaid.ApiClient(configuration)
-client = plaid_api.PlaidApi(api_client)
+client = plaid_api_.PlaidApi(api_client)
 
 products = []
 for product in PLAID_PRODUCTS:
     products.append(Products(product))
-logger.debug(f"Products: {str(products)}")
+logger.info(f"Plaid Products: {str(products)}")
 
 
 
 # We store the access_token in memory - in production, store it in a secure
 # persistent data store.
 access_token = None
-# The payment_id is only relevant for the UK Payment Initiation product.
-# We store the payment_id in memory - in production, store it in a secure
-# persistent data store.
-payment_id = None
 # The transfer_id is only relevant for Transfer ACH product.
-# We store the transfer_id in memomory - in produciton, store it in a secure
+# We store the transfer_id in memomory - in production, store it in a secure
 # persistent data store
 transfer_id = None
 
@@ -152,11 +143,20 @@ item_id = None
 
 # @plaid_link.route('/api/create_link_token', methods=['POST'])
 def create_link_token():
+    """ Create Plaid link token
+    
+    Returns:
+        {}
+    """
     try:
         logger.debug(f"Products (type/value): {str(type(products))}/{str(products)}")
+        logger.debug(f"{PLAID_ENV}")
+        logger.debug(f"{PLAID_SECRET}")
         request = LinkTokenCreateRequest(
-            products=products,
-            client_name="Plaid Quickstart",
+            products=[Products('transactions')],
+            required_if_supported_products=[Products('auth')],
+            optional_products=[Products('liabilities')],
+            client_name='Personal Finance App',
             country_codes=list(map(lambda x: CountryCode(x), PLAID_COUNTRY_CODES)),
             language='en',
             user=LinkTokenCreateRequestUser(
@@ -170,16 +170,14 @@ def create_link_token():
         return response.to_dict()
         # return jsonify(response.to_dict())
     except plaid.ApiException as e:
-        return json.loads(e.body)
-
-
+        response = json.loads(e.body)
+        raise Exception(f"Exception{response}")
 # Exchange token flow - exchange a Link public_token for
 # an API access_token
 # https://plaid.com/docs/#exchange-token-flow
 
-
-# @plaid_link.route('/api/set_access_token', methods=['POST'])
 def get_access_token(public_token):
+    """ Request an Item's Access Token """
     global access_token
     global item_id
     global transfer_id
@@ -291,7 +289,9 @@ def get_balance(access_token):
         pretty_print_response(response.to_dict())
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
-        logger.debug("error found in plaid_lib.get_balance()")
+        logger.error("error found in plaid_lib.get_balance(), recieved:")
+        logger.error(f"plaid response code: {response.status_code}")
+        logger.error(f"plaid response text: {response.text}")
         error_response = format_error(e)
         raise error_response
 

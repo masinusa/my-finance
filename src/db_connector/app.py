@@ -11,8 +11,8 @@ if "/finapp/" not in sys.path:
     sys.path.append('/finapp')
 
 from lib.utils import time_
-from balancesdb_blueprint import balancesdb_blueprint
-
+from blueprints.balancesdb import balancesdb_blueprint
+from blueprints.plaiddb import plaiddb_blueprint
 # +---------------------+
 # | Initialize App      |
 # +---------------------+------------------------------------------------------
@@ -20,6 +20,7 @@ from balancesdb_blueprint import balancesdb_blueprint
 def create_app() -> Flask:
     app = Flask(__name__)
     app.register_blueprint(balancesdb_blueprint)
+    app.register_blueprint(plaiddb_blueprint)
     # Setup logger
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
@@ -49,7 +50,8 @@ def after_request_callback( response ):
 @app.errorhandler(Exception)
 def handle_exception(e):
     # log the exception
-    app.logger.exception('Exception occurred')
+    app.logger.info('Exception occurred in db_connector')
+    app.logger.exception(e)
     # return a custom error page or message
     return "Error Occured", 500
 

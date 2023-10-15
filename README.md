@@ -69,7 +69,7 @@ PlaidDB
     - link_token
     - plaid_client_id
     - plaid_secret
-  - bankTokens
+  - itemTokens
     - chase
     - alliant
     - discover

@@ -71,6 +71,8 @@ services:
       context: .
       dockerfile: ./dockerfiles/plaid_Dockerfile
     command:  python3 -m flask run --host=0.0.0.0
+    ports:
+      - 5000:5000
     volumes:
       - .:/finapp/
     networks:
@@ -95,8 +97,6 @@ services:
       - finapp_net
     ports:
       - "8081:8081"
-    volumes:
-      - mongodb:/data/db/
     profiles:
       - base
 
@@ -120,13 +120,14 @@ services:
     extends: plaid_base
     environment:
       - PLAID_ENV=development
+      - PLAID_SECRET=4c45a3df6d7d8c6b5b72ee524f43f4
     profiles:
       - prod
 
   db_explorer:
     extends: db_explorer_base
     volumes:
-      - 'example-mongodb:/data/db/'
+      - 'mongodb:/data/db/'
     profiles:
       - prod
       
@@ -143,6 +144,7 @@ services:
     extends: plaid_base
     environment:
       - PLAID_ENV=sandbox
+      - PLAID_SECRET=8e34835101df4feee625c2e10810a0
     profiles:
       - dev
       - test
@@ -168,6 +170,7 @@ services:
     build:
       context: .
       dockerfile: ./dockerfiles/test_Dockerfile
+    restart: "no"
     container_name: test
     stdin_open: true # docker run -i
     tty: true        # docker run -t
@@ -176,6 +179,8 @@ services:
       - ME_CONFIG_MONGODB_ADMINUSERNAME=rootuser
       - ME_CONFIG_MONGODB_ADMINPASSWORD=rootpass
       - ME_CONFIG_MONGODB_PORT:27017
+      - PLAID_ENV=sandbox
+      - PLAID_SECRET=8e34835101df4feee625c2e10810a0
     networks:
       - finapp_net
     volumes:

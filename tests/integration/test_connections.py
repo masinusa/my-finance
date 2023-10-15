@@ -22,3 +22,14 @@ def test_manager():
         raise ConnectionError("Connection error, check container is running or URL is correct.")
     assert response.ok
     assert 'Manager Container is Running' in response.text
+
+def test_plaid():
+    """ Test container reachability
+    """
+    # Create a test client using the Flask application configured for testing
+    try:
+        response = requests.get('http://plaid:5000/')
+    except requests.exceptions.ConnectionError as e:
+        raise ConnectionError("Connection error, check container is running or URL is correct.")
+    assert response.ok
+    assert 'Plaid API Container is Running' in response.text

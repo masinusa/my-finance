@@ -48,7 +48,7 @@ def after_request_callback( response ):
 def handle_exception(e):
     # log the exception
     app.logger.exception('Exception occurred')
-    app.logger.execption(e)
+    app.logger.exception(e)
     # return a custom error page or message
     return "Error Occured"
 

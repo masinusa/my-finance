@@ -121,19 +121,15 @@ client = plaid_api_.PlaidApi(api_client)
 products = []
 for product in PLAID_PRODUCTS:
     products.append(Products(product))
-logger.debug(f"Products: {str(products)}")
+logger.info(f"Plaid Products: {str(products)}")
 
 
 
 # We store the access_token in memory - in production, store it in a secure
 # persistent data store.
 access_token = None
-# The payment_id is only relevant for the UK Payment Initiation product.
-# We store the payment_id in memory - in production, store it in a secure
-# persistent data store.
-payment_id = None
 # The transfer_id is only relevant for Transfer ACH product.
-# We store the transfer_id in memomory - in produciton, store it in a secure
+# We store the transfer_id in memomory - in production, store it in a secure
 # persistent data store
 transfer_id = None
 
@@ -180,9 +176,8 @@ def create_link_token():
 # an API access_token
 # https://plaid.com/docs/#exchange-token-flow
 
-
-# @plaid_link.route('/api/set_access_token', methods=['POST'])
 def get_access_token(public_token):
+    """ Request an Item's Access Token """
     global access_token
     global item_id
     global transfer_id
@@ -294,7 +289,9 @@ def get_balance(access_token):
         pretty_print_response(response.to_dict())
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
-        logger.debug("error found in plaid_lib.get_balance()")
+        logger.error("error found in plaid_lib.get_balance(), recieved:")
+        logger.error(f"plaid response code: {response.status_code}")
+        logger.error(f"plaid response text: {response.text}")
         error_response = format_error(e)
         raise error_response
 

@@ -5,6 +5,7 @@ import logging
 import json
 
 from flask import Flask, render_template, jsonify, request, Response
+import requests
 import configparser
 import pymongo
 import plaid
@@ -56,6 +57,23 @@ app = create_app()
 # +-----------------+-------------------------------------------------
 # | Flask Routes    |
 # +-----------------+ 
+
+@app.before_request 
+def before_request_callback(): 
+    app.logger.info(f"Recieved {request.method}: {request.url}")
+
+@app.after_request 
+def after_request_callback( response ): 
+    app.logger.info(f"Completed {request.method}: {request.url}")
+    return response 
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    # log the exception
+    app.logger.exception('Exception occurred')
+    app.logger.exception(e)
+    # return a custom error page or message
+    return "Error Occured"
 
 @app.route('/')
 def exists() -> Response:
@@ -119,7 +137,10 @@ def exchange_public_token():
     response = plaid_lib.get_access_token(public_token)
     access_token = response['access_token']
     bank_name = plaid_lib.item(access_token)['institution']['name']
-    mongo.set_access_token(access_token=access_token, bank_name=bank_name)
+    req_json = {"item": bank_name, 'access_token': access_token}
+    app.logger.info(f"Saving access token: {bank_name}:{access_token}")
+    response = requests.post("http://db_connector:5000/database/access_tokens/", json=req_json)
+    assert response.ok
     return response
 
 @app.route('/api/get_balance', methods=['GET'])

@@ -14,7 +14,7 @@ if "/finapp/" not in sys.path:
 from lib.utils import time_
 
 # Create Flask Blueprint
-balancesdb_blueprint = Blueprint('balancesdb_blueprint', __name__)
+balancesdb_blueprint = Blueprint('balancesdb', __name__)
 
 def _cur_month_collection(offset: int = 0):
     curr_m_y = time_.curr_month_year_int(relative_month=offset)

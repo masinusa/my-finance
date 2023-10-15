@@ -51,10 +51,13 @@ with st.sidebar:
                                        params={"month_offset": month_offset}, timeout=10)
                 resp_status = resp_status.json()
             except requests.exceptions.JSONDecodeError as e:
-                st.error(f"JSON decode error, recieved: {resp_status}")
-                st.error(e)
+                try: st.warning(resp_status.text)
+                except:
+                    st.error(f"No JSON or text recieved. Status Code: {resp_status.status_code}")
+                    st.error(e)
+                    sys.exit()
                 sys.exit()
-            
+        
         success_count = len([x for x in resp_status['institutions'] if x['code'] == 200 ])
         st.success(f"Updated {success_count}/{len(resp_status['institutions'])}")
         if resp_status != 200:
@@ -78,18 +81,20 @@ except Exception as e:
     st.error(f"Unkown Error: {type(e)}")
     sys.exit()
 
-
-try: 
-    balances = balances.json()
-except requests.exceptions.JSONDecodeError as e:
-    st.error("Did not receive JSON decodable object. Check Manager")
-    st.write("Recieved: ")
-    st.write(balances)
-    sys.exit()
-except Exception as e:
-    st.error(f"Unkown Error: {type(e)}")
-    sys.exit()
-logger.info("Received Balances: {balances}")
+if balances.status_code == 200:
+    try: 
+        balances = balances.json()
+    except requests.exceptions.JSONDecodeError as e:
+        st.error("Did not receive JSON decodable object. Check Manager")
+        st.write("Recieved: ")
+        st.write(balances)
+        sys.exit()
+    except Exception as e:
+        st.error(f"Unkown Error: {type(e)}")
+        sys.exit()
+    logger.info("Received Balances: {balances}")
+else:
+    st.error(f"Recieved non-200 response code: {balances.status_code}")
 
 # +------------------+
 # |  Show Balances   |

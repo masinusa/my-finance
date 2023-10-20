@@ -17,6 +17,20 @@ from lib.utils import time_
 # Create Flask Blueprint
 plaiddb_blueprint = Blueprint('plaiddb', __name__)
 
+
+@plaiddb_blueprint.route('/database/transaction_cursors/', methods=['GET'])
+def get_t_cursors():
+    """  Returns stored transaction cursors """
+    result = [bank for bank in current_app.client.plaidDB.transactionCursors.find({})]
+    for cursor in result:
+        cursor['_id'] = str(cursor['_id'])
+    current_app.logger.debug(f"Returning: {type(result)}")
+    current_app.logger.info(f"Returning: {result}")
+    if result:
+        return flask.jsonify(result)
+    else:
+        return ''
+
 @plaiddb_blueprint.route('/database/access_tokens/', methods=['GET'])
 def get_accesstokens():
     """  Returns stored access tokens """

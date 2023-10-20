@@ -93,7 +93,6 @@ def format_error(e):
 PLAID_ENV = os.getenv('PLAID_ENV')
 PLAID_CLIENT_ID = os.getenv('PLAID_CLIENT_ID')
 PLAID_SECRET = os.getenv('PLAID_SECRET')
-PLAID_PRODUCTS = os.getenv('PLAID_PRODUCTS').split(',')
 PLAID_REDIRECT_URI = empty_to_none('PLAID_REDIRECT_URI')
 PLAID_COUNTRY_CODES = os.getenv('PLAID_COUNTRY_CODES').split(',')
 
@@ -117,12 +116,6 @@ configuration = plaid.Configuration(
 
 api_client = plaid.ApiClient(configuration)
 client = plaid_api_.PlaidApi(api_client)
-
-products = []
-for product in PLAID_PRODUCTS:
-    products.append(Products(product))
-logger.info(f"Plaid Products: {str(products)}")
-
 
 
 # We store the access_token in memory - in production, store it in a secure
@@ -149,7 +142,6 @@ def create_link_token():
         {}
     """
     try:
-        logger.debug(f"Products (type/value): {str(type(products))}/{str(products)}")
         logger.debug(f"{PLAID_ENV}")
         logger.debug(f"{PLAID_SECRET}")
         request = LinkTokenCreateRequest(
@@ -187,8 +179,8 @@ def get_access_token(public_token):
         exchange_response = client.item_public_token_exchange(exchange_request)
         access_token = exchange_response['access_token']
         item_id = exchange_response['item_id']
-        if 'transfer' in PLAID_PRODUCTS:
-            transfer_id = authorize_and_create_transfer(access_token)
+        # if 'transfer' in PLAID_PRODUCTS:
+        #     transfer_id = authorize_and_create_transfer(access_token)
         return exchange_response.to_dict()
         # return jsonify(exchange_response.to_dict())
     except plaid.ApiException as e:
@@ -218,7 +210,7 @@ def get_auth(access_token):
 
 
 # @plaid_link.route('/api/transactions', methods=['GET'])
-def get_transactions(bank_name, access_token, cursor:str = ''):
+def latest_transactions(access_token, cursor:str = ''):
 
     # New transaction updates since "cursor"
     added = []
@@ -231,7 +223,7 @@ def get_transactions(bank_name, access_token, cursor:str = ''):
             request = TransactionsSyncRequest(
                 access_token=access_token,
                 cursor=cursor,
-                count=500
+                count=100
             )
             response = client.transactions_sync(request).to_dict()
             # Add this page of results
@@ -241,7 +233,7 @@ def get_transactions(bank_name, access_token, cursor:str = ''):
             has_more = response['has_more']
             # Update cursor to the next cursor
             cursor = response['next_cursor']
-            pretty_print_response(response)
+            # pretty_print_response(response)
 
         # Return the 8 most recent transactions
         #TODO DON'T LIMIT TO 8

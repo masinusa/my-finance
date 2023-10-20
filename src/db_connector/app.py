@@ -13,6 +13,7 @@ if "/finapp/" not in sys.path:
 from lib.utils import time_
 from blueprints.balancesdb import balancesdb_blueprint
 from blueprints.plaiddb import plaiddb_blueprint
+from blueprints.transactionsdb import transactionsdb_blueprint
 # +---------------------+
 # | Initialize App      |
 # +---------------------+------------------------------------------------------
@@ -21,6 +22,7 @@ def create_app() -> Flask:
     app = Flask(__name__)
     app.register_blueprint(balancesdb_blueprint)
     app.register_blueprint(plaiddb_blueprint)
+    app.register_blueprint(transactionsdb_blueprint)
     # Setup logger
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)

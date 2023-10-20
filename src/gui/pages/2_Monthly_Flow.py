@@ -112,7 +112,7 @@ r.subheader(f"Bi-Weekly: ${'{:,.2f}'.format(biweekly)}")
 net_monthly = monthly
 
 # +-------------------+
-# | Show Monthly Taxes |
+# | Monthly Taxes |
 # +-------------------+---------------------------------
 st.divider()
 header = st.container()
@@ -137,7 +137,7 @@ st.subheader(f"Monthly Taxes:")
 st.table(tax_df)
 st.subheader(f"Monthly - {dollars(tax_total, omit_sign=True)} = {dollars(net_monthly)}")
 # +-------------------+
-# | Show Deductions |
+# | Insurance & Contributions |
 # +-------------------+---------------------------------
 st.divider()
 insurance_col, contributions_col = st.columns(2)

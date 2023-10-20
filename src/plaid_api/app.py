@@ -4,6 +4,7 @@ from pathlib import Path
 import logging
 import json
 
+import flask
 from flask import Flask, render_template, jsonify, request, Response
 import requests
 import configparser
@@ -97,7 +98,7 @@ def plaid_link():
     return render_template('index.html', token = app.token, acc_banks=accessible_banks, inacc_banks=inaccessible_banks)
 
 # +-----------------------+
-# | GUI ROUTES      |
+# |       |
 # +---------------+------------------------------------------------------------
 
 @app.route('/link_token', methods=['GET', 'POST'])
@@ -180,24 +181,34 @@ def get_balance():
 
     return jsonify(result)
 
-@app.route('/api/get_transactions', methods=['GET'])
-def get_transactions():
-    app.logger.info("GET /api/get_transactions")
+@app.route('/api/transactions', methods=['GET'])
+def latest_transactions():
+    """
+    Params: 
+        access_token, URL param str
+        transaction_cursor, URL param str
+    """
     access_token = request.args.get('access_token')
-
-    bank_name = plaid_lib.item(access_token)['institution']['name']
-    cursor = mongo.get_transaction_cursor(bank_name)
-    cursor, transactions = plaid_lib.get_transactions(bank_name=bank_name, 
-                                              cursor=cursor, 
-                                              access_token=access_token)
-    count = 0 # to return how many transactions got updated
-    for transact in transactions.get_json()['latest_transactions']:
-        squeezed_transaction = plaid_utils.squeeze_transaction(bank_name, transact)
-
-        mongo.set_transaction(squeezed_transaction)
-        count += 1
+    inst_name = plaid_lib.item(access_token)['institution']['name']
+    cursor = request.args.get('transactions_cursor')
+    if cursor:
+        cursor = request.args.get('transactions_cursor')
+        app.logger.debug(f"Attempting with Given Cursor: {cursor}")
+        new_cursor, transactions = plaid_lib.latest_transactions( cursor=cursor, access_token=access_token)
+    else: 
+        app.logger.debug("No Transactions Cursor Recieved")
+        new_cursor, transactions = plaid_lib.latest_transactions(access_token=access_token)
     
-    mongo.set_transaction_cursor(bank_name, cursor)
+ 
+    # cursor = mongo.get_transaction_cursor(inst_name)
+    stransactions = [] # Squeezed Transactions
+    for transact in transactions.get_json()['latest_transactions']:
+        squeezed_transaction = plaid_utils.squeeze_transaction(inst_name, transact)
+        stransactions.append(squeezed_transaction)
+        # mongo.set_transaction(squeezed_transaction)
+    
+    # mongo.set_transaction_cursor(bank_name, cursor)
+    return jsonify(new_cursor, stransactions)
     return f"Updated {count} Transactions"
 
 if __name__ == "__main__":

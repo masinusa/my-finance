@@ -56,6 +56,9 @@ TO-DO reminders:
 - Improve documentation
 - Tips for Initializing products: https://plaid.com/docs/link/initializing-products/
   - more info, see 'products': https://plaid.com/docs/api/tokens/#linktokencreate
+- only update balances with timestamps more than a day old
+- check to make sure all item's accounts are being written into the database/shown in the gui
+- make sure transaction cursor is being updated
 
 Notes:
 - the explore target simply runs the src/explore script for easily executing code in the container... should maybe just attach to the container to start with or something

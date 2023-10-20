@@ -14,6 +14,12 @@ import json
 
 # from lib.utils.time_ import datetime_to_month_offset
 
+def test_get_transaction_cursors():
+    """ Test Mongo Database Transactions Cursors Retrieval """
+    response = requests.get("http://db_connector:5000/database/transaction_cursors/")
+    print(response.json())
+    assert response.ok
+
 def test_get_accesstokens():
     """ Test Mongo Database Balances retrieval """
     response = requests.get("http://db_connector:5000/database/access_tokens/")

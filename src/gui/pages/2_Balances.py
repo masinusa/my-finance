@@ -48,7 +48,7 @@ with st.sidebar:
         with st.spinner('Updating Balances...'):
             try:
                 resp_status = requests.put('http://manager:5000/balances/update', 
-                                       params={"month_offset": month_offset}, timeout=10)
+                                       params={"month_offset": month_offset}, timeout=30)
                 resp_status = resp_status.json()
             except requests.exceptions.JSONDecodeError as e:
                 try: st.warning(resp_status.text)

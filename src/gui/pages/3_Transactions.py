@@ -59,26 +59,22 @@ with st.sidebar:
     # | Update Transactions (inside sidebar) |
     # +--------------------------------------+---------------------------------
     if update:
-        logger.info("Updating Transactions")
-        progress_text = "Updating Transaction Information"
-        progress = 0
-        progress_bar = st.progress(progress, text=progress_text)
-
-        progress_bar.progress(progress + 5, text=f"{progress_text}\n\nLoading First Institution")
-        for bank in [b for b in banks if b['working']]:
+        with st.spinner('Updating Transactions...'):
             try:
-                progress_bar.progress(progress + 5, text=f"{progress_text}\n\nLoading {bank['bank_name']}")
-                resp = requests.get('http://plaid:5000/api/get_transactions', params={"access_token":bank['access_token']})
-
-                # Update progress bar
-                progress += int((1/len(banks))*100)
-                if progress >= 100: progress = 100
-                progress_bar.progress(progress, text=f"{progress_text}\n\nCompleted {bank['bank_name']}")
-            except Exception as e:
-                st.error(f"Failed bank: {bank['bank_name']}")
-                st.error(e)
-                st.write(e)
-        progress_bar.progress(progress, text=f"Finished Updating Transaction Information\n\n{resp.text}") 
+                resp_status = requests.put('http://manager:5000/transactions', timeout=10)
+                resp_status = resp_status.json()['status']
+            except requests.exceptions.JSONDecodeError as e:
+                try: st.warning(resp_status.text)
+                except:
+                    st.error(f"No JSON or text recieved. Status Code: {resp_status.status_code}")
+                    st.error(e)
+                    sys.exit()
+                sys.exit()
+        # st.write(resp_status)
+        success_count = len([x for x in resp_status if x['code'] == 200 ])
+        st.success(f"Updated {success_count}/{len(resp_status)}")
+        for item in [x for x in resp_status if x['code'] != 200]:
+            st.write(f"Failed to retrieve {item['institution']}")
 
 # +-----------------------+
 # | Edit Transaction View |

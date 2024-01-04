@@ -3,7 +3,8 @@ import sys
 from pathlib import Path
 import logging
 
-from flask import Flask, jsonify, request, Response
+# from flask import Flask, jsonify, request, Response
+from fastapi import FastAPI 
 from bunnet import init_bunnet
 import pymongo
 import markupsafe
@@ -16,16 +17,22 @@ if "/finapp/src" not in sys.path:
 # from manager import blueprint_transactions
 # from manager.balances import blueprint_balances
 # from manager import data_connector
-from .blueprint_accounts import accounts_blueprint
-from .blueprint_institutions import institutions_blueprint
-from .blueprint_transactions import transactions_blueprint
+from manager.account_api import accounts_api
+from manager.institutions_api import institutions_api
+from manager.transactions_api import transactions_api
+from manager.account_api import account_api
+
+
 
 # +---------------------+
 # | Initialize App      |
 # +---------------------+------------------------------------------------------
 
-def create_app() -> Flask:
-    app = Flask(__name__)
+def create_app():
+    app = FastAPI()
+    app.include_router(account_api)
+    app.include_router(institutions_api)
+    app.include_router(transactions_api)
     # app.register_blueprint(blueprint_transactions)
     # app.register_blueprint(blueprint_balances)
     # Setup logger
@@ -46,22 +53,22 @@ def create_app() -> Flask:
 app = create_app()
 app.logger.info(f"--- Starting Manager ---")
 
-@app.before_request 
-def before_request_callback(): 
-    app.logger.info(f"Recieved {request.method}: {request.url}")
+# @app.before_request 
+# def before_request_callback(): 
+#     app.logger.info(f"Recieved {request.method}: {request.url}")
 
-@app.after_request 
-def after_request_callback( response ): 
-    app.logger.info(f"Completed {request.method}: {request.url}")
-    return response 
+# @app.after_request 
+# def after_request_callback( response ): 
+#     app.logger.info(f"Completed {request.method}: {request.url}")
+#     return response 
 
-@app.errorhandler(Exception)
-def handle_exception(e):
-    # log the exception
-    app.logger.exception('Exception occurred')
-    app.logger.exception(e)
-    # return a custom error page or message
-    return "Error Occured"
+# @app.errorhandler(Exception)
+# def handle_exception(e):
+#     # log the exception
+#     app.logger.exception('Exception occurred')
+#     app.logger.exception(e)
+#     # return a custom error page or message
+#     return "Error Occured"
 
 @app.route('/')
 def exists() -> Response:

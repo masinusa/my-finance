@@ -55,6 +55,7 @@ TO-DO reminders:
 - make sure transaction cursor is being updated
   - transaction categorizations are re-written upon updating transactions
 - clean up plaiddb database with nested objects.  Have `Item` objects with all the related information
+- create a system config instead of various Make commands
 
 Notes:
 - the explore target simply runs the src/explore script for easily executing code in the container... should maybe just attach to the container to start with or something

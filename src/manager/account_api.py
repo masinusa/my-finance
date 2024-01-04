@@ -3,13 +3,13 @@ import os
 from pathlib import Path
 import requests
 
-from flask import Blueprint, request, current_app
+from fastapi import APIRouter
 
 from manager.object_data_managers import AccountODM
 
-accounts_blueprint = Blueprint('accounts_blueprint', __name__)
+account_api = APIRouter()
 
-@accounts_blueprint.route('/accounts/', methods=['PUT'])
+@account_api.get("/account/")
 def _get_accounts():
     accounts = AccountODM.find()
     # # Request Information from Mongo DB
@@ -20,7 +20,7 @@ def _get_accounts():
     # current_app.logger.info(f"Response code from db_connector: {transactions.status_code}")
     # return json.dumps(transactions.json())
 
-@accounts_blueprint.route('/accounts/', methods=['PUT'])
+@account_api.put("/account/")
 def _update_accounts():
 
     # Retrieve Transactions from plaid_api and update database

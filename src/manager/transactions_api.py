@@ -3,15 +3,16 @@ import os
 from pathlib import Path
 import requests
 
-from flask import Blueprint, request, current_app
+from fastapi import APIRouter
 
-from manager.object_data_managers import AccountODM
+from manager.balances.BalanceODM import TransactionODM
 
-institutions_blueprint = Blueprint('institutions_blueprint', __name__)
+transactions_api = APIRouter()
 
-@institutions_blueprint.route('/accounts/', methods=['PUT'])
-def _get_accounts():
-    accounts = AccountODM.find()
+
+@transactions_api.get('/transactions/{month_offset}')
+def _get_transactions(month_offset: int):
+    transactions = TransactionODM.find()
     # # Request Information from Mongo DB
     # params = {"month_offset": month_offset}
     # current_app.logger.info(f"month_offset: {month_offset}")
@@ -20,9 +21,8 @@ def _get_accounts():
     # current_app.logger.info(f"Response code from db_connector: {transactions.status_code}")
     # return json.dumps(transactions.json())
 
-@institutions_blueprint.route('/accounts/', methods=['PUT'])
-def _update_accounts():
-
+@transactions_api.put('transactions/')
+def _update_transactions():
     # Retrieve Transactions from plaid_api and update database
-    return update_accounts()
+    return update_transactions()
 

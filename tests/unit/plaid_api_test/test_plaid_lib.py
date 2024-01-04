@@ -23,16 +23,17 @@ def test_create_link_token():
     assert list(response.keys()) == ['link_token', 'expiration', 'request_id']
 
 def test_item():
-    access_token='access-sandbox-605ef917-d2a1-4dc1-b310-d59cc03d8425'
+    access_token='access-sandbox-c1da46e8-2c29-4167-ae88-a179c5e18f2d'
     bank_name = item(access_token)['institution']['name']
     assert bank_name == 'Chase'
 
 def test_latest_transactions():
     app = flask.Flask(__name__)
-    access_token='access-sandbox-605ef917-d2a1-4dc1-b310-d59cc03d8425'
+    access_token='access-sandbox-c1da46e8-2c29-4167-ae88-a179c5e18f2d'
     with app.app_context():
         transactions = latest_transactions(access_token)
     cursor = transactions[0]
-    assert cursor == "CAESJW5QUmpqNUc0NVhoNUx6cEFNUDZNaXdReEVxeXk2OUMzUXd5dkIaDAiRubmpBhDI+9PIAyIMCJG5uakGEMj708gDKgwIkbm5qQYQyPvTyAM="
+    print(cursor)
+    assert cursor == 'CAESJW5QUmpqNUc0NVhoNUx6cEFNUDZNaXdReEVxeXk2OUMzUXd5dkIaDAiRubmpBhDI+9PIAyIMCJG5uakGEMj708gDKgwIkbm5qQYQyPvTyAM='
     transactions = json.loads(transactions[1].get_data(as_text=True))
     assert type(transactions) == dict

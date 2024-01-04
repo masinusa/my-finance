@@ -24,7 +24,7 @@ def test_get_transactions():
     response = requests.get("http://db_connector:5000/database/transactions/", params=params)
     assert response.ok
 
-def test_update_balancesdb():
+def test_update_db():
     """ Test Mongo Database Balances retrieval
     """
     today = date.today()

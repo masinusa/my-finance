@@ -25,8 +25,9 @@ from lib.utils.time_ import datetime_to_month_offset
 
 def test_latest_transactions():
     """ Test Mongo Database Balances retrieval """
-    params = {'access_token': 'access-sandbox-605ef917-d2a1-4dc1-b310-d59cc03d8425'}
+    params = {'access_token': 'access-sandbox-c1da46e8-2c29-4167-ae88-a179c5e18f2d'}
     response = requests.get("http://plaid:5000/api/transactions", params=params)
+    print(response.content)
     cursor, transactions = response.json()
     print(response.json())
     assert cursor == 'CAESJW5QUmpqNUc0NVhoNUx6cEFNUDZNaXdReEVxeXk2OUMzUXd5dkIaDAiRubmpBhDI+9PIAyIMCJG5uakGEMj708gDKgwIkbm5qQYQyPvTyAM='

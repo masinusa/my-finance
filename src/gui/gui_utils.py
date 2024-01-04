@@ -37,3 +37,10 @@ def setup_logger(name):
         handler.setFormatter(formatter)
         logger.addHandler(handler)
     return logger
+
+def dollars(val, omit_sign=False):
+    result = f"{'{:,.2f}'.format(val)}"
+    if omit_sign: 
+        return  result
+    else: 
+        return '$' + result

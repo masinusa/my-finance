@@ -4,21 +4,14 @@ from pathlib import Path
 import logging
 
 from flask import Flask, jsonify, request, Response
-from bunnet import init_bunnet
-import pymongo
-import markupsafe
 
 # Add base container path
-if "/finapp/src" not in sys.path:
-    sys.path.append('/finapp/src')
+if "/finapp/" not in sys.path:
+    sys.path.append('/finapp')
 
-# from lib.utils import time_
-# from manager import blueprint_transactions
-# from manager.balances import blueprint_balances
-# from manager import data_connector
-from .blueprint_accounts import accounts_blueprint
-from .blueprint_institutions import institutions_blueprint
-from .blueprint_transactions import transactions_blueprint
+from lib.utils import time_
+from transactions.transactions_blueprint import transactions_blueprint
+from balances.balances_blueprint import balances_blueprint
 
 # +---------------------+
 # | Initialize App      |
@@ -26,8 +19,8 @@ from .blueprint_transactions import transactions_blueprint
 
 def create_app() -> Flask:
     app = Flask(__name__)
-    # app.register_blueprint(blueprint_transactions)
-    # app.register_blueprint(blueprint_balances)
+    app.register_blueprint(transactions_blueprint)
+    app.register_blueprint(balances_blueprint)
     # Setup logger
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
@@ -36,10 +29,6 @@ def create_app() -> Flask:
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     app.logger = logger
-
-    # Initialize MongoDB ORM: Bunnet
-    client = pymongo.MongoClient("mongodb://rootuser:rootpass@mongo:27017/")
-    init_bunnet(database=client.db_name, document_models=[]) # add documents here
 
     return app
 

@@ -33,6 +33,7 @@ def get_balancesdb():
     for document in cursor:
         doc_dict = {"_id": str(document["_id"]),
                     "balance": document["balance"],
+                    "account": document['account'],
                     "institution": document["institution"],
                     "last_updated": document["last_updated"],
                     "subtype": document["subtype"],
@@ -49,7 +50,8 @@ def update_balancesdb():
     current_app.logger.debug(f"of type: {int(request.args['month_offset'])}")
     current_app.logger.debug(f"of type: {type(int(request.args['month_offset']))}")
     _cur_month_collection(offset = int(request.args['month_offset'])).update_one(
-        {"institution": json_data['institution']},
+        {"institution": json_data['institution'],
+         'account': json_data['account']},
         {"$set":{
             # "_id": id,
             "institution": json_data['institution'],

@@ -17,7 +17,6 @@ from lib.utils import time_
 # Create Flask Blueprint
 plaiddb_blueprint = Blueprint('plaiddb', __name__)
 
-
 @plaiddb_blueprint.route('/database/transaction_cursors/', methods=['GET'])
 def get_t_cursors():
     """  Returns stored transaction cursors """
@@ -30,6 +29,27 @@ def get_t_cursors():
         return flask.jsonify(result)
     else:
         return ''
+    
+@plaiddb_blueprint.route('/database/transaction_cursors/', methods=['PUT'])
+def set_t_cursors():
+    """  Returns stored transaction cursors """
+    json_data = flask.request.json
+    institution = json_data['institution']
+    t_cursor = json_data['transaction_cursor']
+    current_app.client.plaidDB.transactionCursors.update_one(
+        {'bank_name': institution},
+        {"$set":{'transaction_cursor': t_cursor, 
+                 'last_updated': time_.timestamp()}},
+        upsert = True)
+    return "Success", 200
+    # for cursor in result:
+    #     cursor['_id'] = str(cursor['_id'])
+    # current_app.logger.debug(f"Returning: {type(result)}")
+    # current_app.logger.info(f"Returning: {result}")
+    # if result:
+    #     return flask.jsonify(result)
+    # else:
+    #     return ''
 
 @plaiddb_blueprint.route('/database/access_tokens/', methods=['GET'])
 def get_accesstokens():

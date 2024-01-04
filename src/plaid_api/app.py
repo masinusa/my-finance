@@ -21,6 +21,7 @@ if base_container_path not in sys.path:
 sys.path.append('/finapp/')
 import plaid_lib
 import plaid_utils
+from plaid_api import logging_utils
 import lib.mongo.mongo as mongo
 from lib.utils import time_
 
@@ -32,12 +33,7 @@ def create_app() -> Flask:
     app = Flask(__name__)
 
     # Setup logger
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-    handler=logging.FileHandler("/finapp/logs/plaid_api_processing.log")
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    logger = logging_utils.get_logger('app')
     app.logger = logger
 
     # Get Public Token 
@@ -134,6 +130,7 @@ def create_link_token(): return plaid_lib.create_link_token()
 
 @app.route('/api/exchange_public_token', methods=['GET', 'POST'])
 def exchange_public_token():
+    app.logger.debug("Exchanging public token")
     public_token = request.get_json()['public_token']
     response = plaid_lib.get_access_token(public_token)
     access_token = response['access_token']
@@ -164,8 +161,7 @@ def get_balance():
         response = plaid_lib.get_balance(access_token)
         app.logger.debug("no error found, received request")
     except Exception as e:
-        app.logger.debug("Error found in api/get_balance")
-        app.logger.info(e.__str__())
+        app.logger.exception("Error found in api/get_balance")
         return f"Error occured: {e}", 400
     
     # Parse results
@@ -178,7 +174,8 @@ def get_balance():
         result['accounts'].append({'account': account_name,
                                    'balance': account_balance,
                                    'subtype': account_subtype})
-
+        
+    app.logger.debug(f"Returning: {result}")
     return jsonify(result)
 
 @app.route('/api/transactions', methods=['GET'])
@@ -194,9 +191,9 @@ def latest_transactions():
     if cursor:
         cursor = request.args.get('transactions_cursor')
         app.logger.debug(f"Attempting with Given Cursor: {cursor}")
-        new_cursor, transactions = plaid_lib.latest_transactions( cursor=cursor, access_token=access_token)
+        new_cursor, transactions = plaid_lib.latest_transactions(cursor=cursor, access_token=access_token)
     else: 
-        app.logger.debug("No Transactions Cursor Recieved")
+        app.logger.debug(f"No Transactions Cursor Recieved for: {inst_name}")
         new_cursor, transactions = plaid_lib.latest_transactions(access_token=access_token)
     
  

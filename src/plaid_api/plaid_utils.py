@@ -10,7 +10,7 @@ from lib import utils
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 handler=logging.FileHandler("/finapp/logs/plaid_api_processing.log")
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger = logger
@@ -26,7 +26,7 @@ def squeeze_transaction(account, transaction: dict) -> dict:
   # logger.debug(str(date_time))
   # if date_given is None:
   #   date_given = transaction['authorized_date']
-  date_given = transaction["authorized_datetime"] or transaction['authorized_date']
+  date_given = transaction["authorized_datetime"] or transaction['authorized_date'] or transaction['date']
   if date_given:
     date_time = datetime.strptime(date_given, "%a, %d %b %Y %H:%M:%S %Z")
     # logger.debug('no datetime authorized given:')
@@ -34,7 +34,7 @@ def squeeze_transaction(account, transaction: dict) -> dict:
     # logger.debug(str(date_time))
     timestamp = utils.time_.datetime_to_timestamp(date_time)
   else:
-    timestamp = None
+    logger.debug(f"Unable to extract date_authorized, raw_transaction: {transaction}")
   return {"_id": transaction["transaction_id"],
           "date_authorized": timestamp,
           "account": account,

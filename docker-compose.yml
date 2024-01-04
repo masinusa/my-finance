@@ -1,4 +1,6 @@
 # version: "3"
+
+
 volumes:
   mongodb:
   example-mongodb:
@@ -7,76 +9,67 @@ networks:
   finapp_net:
     driver: bridge
 
+x-local_mounts: &local_mounts
+  - .:/finapp
+
+x-container_options: &container_options
+  stdin_open: true # docker run -i
+  tty: true        # docker run -t
+  networks:
+    - finapp_net
+
 services:
   gui:
     image: citywideiowa0/finapp_gui
     container_name: gui
-    stdin_open: true # docker run -i
-    tty: true        # docker run -t
     build:
       context: .
       dockerfile: ./dockerfiles/gui_Dockerfile
     command: "streamlit run Home.py --server.port=8501 --server.allowRunOnSave=true --server.runOnSave=true --server.address=0.0.0.0"
-    volumes:
-      - .:/finapp/
-    networks:
-      - finapp_net
     ports:
       - "80:8501" # Streamlit
+    volumes: *local_mounts
+    <<: *container_options
 
   manager:
     image: citywideiowa0/finapp_manager
     container_name: manager
-    stdin_open: true # docker run -i
-    tty: true        # docker run -t
     build:
       context: .
       dockerfile: ./dockerfiles/manager_Dockerfile
     command:  python3 -m flask run --host=0.0.0.0
-    volumes:
-      - .:/finapp/
-    networks:
-      - finapp_net
     expose:
       - "5000"
     environment:
       - FLASK_DEBUG=1
+    volumes: *local_mounts
+    <<: *container_options
 
   db_connector:
     image: citywideiowa0/finapp_db_connector
     container_name: db_connector
-    stdin_open: true # docker run -i
-    tty: true        # docker run -t
     build:
       context: .
       dockerfile: ./dockerfiles/db_connector_Dockerfile
     command:  python3 -m flask run --host=0.0.0.0
-    volumes:
-      - .:/finapp/
-    networks:
-      - finapp_net
     expose:
       - "5000" # Flask (DB Connector)
     environment:
       - FLASK_DEBUG=1
+    volumes: *local_mounts
+    <<: *container_options
 
 ###----- Shared/Base Services -----###
 
   plaid_base:
     image: citywideiowa0/finapp_plaid
     container_name: plaid
-    stdin_open: true # docker run -i
-    tty: true        # docker run -t
     build:
       context: .
       dockerfile: ./dockerfiles/plaid_Dockerfile
     command:  python3 -m flask run --host=0.0.0.0
     ports:
       - 5000:5000
-    volumes:
-      - .:/finapp/
-    networks:
-      - finapp_net
     expose:
       - "5000" # Flask
     environment:
@@ -84,6 +77,8 @@ services:
       - PLAID_ENV=development
     profiles:
       - base
+    volumes: *local_mounts
+    <<: *container_options
 
   db_explorer_base:
     image: mongo-express
@@ -172,8 +167,6 @@ services:
       dockerfile: ./dockerfiles/test_Dockerfile
     restart: "no"
     container_name: test
-    stdin_open: true # docker run -i
-    tty: true        # docker run -t
     environment:
       - ME_CONFIG_MONGODB_SERVER=mongo
       - ME_CONFIG_MONGODB_ADMINUSERNAME=rootuser
@@ -181,10 +174,6 @@ services:
       - ME_CONFIG_MONGODB_PORT:27017
       - PLAID_ENV=sandbox
       - PLAID_SECRET=8e34835101df4feee625c2e10810a0
-    networks:
-      - finapp_net
-    volumes:
-      - .:/finapp/
     depends_on:
       - sandbox_plaid
       - example_db
@@ -193,3 +182,5 @@ services:
       - dev_db_explorer
     profiles:
       - test
+    volumes: *local_mounts
+    <<: *container_options

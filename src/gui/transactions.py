@@ -29,7 +29,7 @@ logger.addHandler(handler)
 categories = load_categories()
 
 def sort(month_offset: int = 0):
-  transactions = mongo.get_transactions(month_offset=month_offset)
+  transactions = mongo.get_transactions(category='N/A', month_offset=month_offset)
   count = 0
   for t in transactions:
       category = 'N/A'

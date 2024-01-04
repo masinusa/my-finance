@@ -1,4 +1,5 @@
 # source https://github.com/plaid/quickstart/blob/master/python/server.py#L243
+import sys
 
 from plaid.exceptions import ApiException
 from plaid.model.payment_amount import PaymentAmount
@@ -56,15 +57,15 @@ import time
 from dotenv import load_dotenv
 from werkzeug.wrappers import response
 
+sys.path.append('/finapp/')
+from src.plaid_api import logging_utils
+
+
+
 load_dotenv()
 
 # Setup logger
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-handler=logging.FileHandler("/finapp/logs/plaid_api_processing.log")
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+logger = logging_utils.get_logger('plaid_lib')
 
 # +---------------+
 # | Helpers       |
@@ -211,7 +212,6 @@ def get_auth(access_token):
 
 # @plaid_link.route('/api/transactions', methods=['GET'])
 def latest_transactions(access_token, cursor:str = ''):
-
     # New transaction updates since "cursor"
     added = []
     modified = []
@@ -242,7 +242,9 @@ def latest_transactions(access_token, cursor:str = ''):
             'latest_transactions': latest_transactions})
 
     except plaid.ApiException as e:
+        logger.exception(e)
         error_response = format_error(e)
+        logger.debug(f"Returning: {error_response}")
         return jsonify(error_response)
 
 
@@ -276,14 +278,18 @@ def get_balance(access_token):
         request = AccountsBalanceGetRequest(
             access_token=access_token
         )
+        logger.debug("created account balance request")
         response = client.accounts_balance_get(request)
         logger.debug("no errors in plaid_lib.get_balance()")
         pretty_print_response(response.to_dict())
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
-        logger.error("error found in plaid_lib.get_balance(), recieved:")
-        logger.error(f"plaid response code: {response.status_code}")
-        logger.error(f"plaid response text: {response.text}")
+        logger.exception("error found in plaid_lib.get_balance(), recieved:")
+        try:
+            logger.error(f"plaid response code: {response.status_code}")
+            logger.error(f"plaid response text: {response.text}")
+        except:
+            logger.error(f"error occured before api client request submitted")
         error_response = format_error(e)
         raise error_response
 

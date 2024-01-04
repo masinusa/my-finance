@@ -6,8 +6,6 @@ from datetime import datetime
 import logging
 
 import streamlit as st
-from streamlit_modal import Modal
-import streamlit.components.v1 as components
 
 base_container_path = str(Path(os.path.abspath(__file__)).parents[1]).replace('\\', '/')
 if base_container_path not in sys.path:
@@ -61,7 +59,7 @@ with st.sidebar:
     if update:
         with st.spinner('Updating Transactions...'):
             try:
-                resp_status = requests.put('http://manager:5000/transactions', timeout=10)
+                resp_status = requests.put('http://manager:5000/transactions', timeout=30)
                 resp_status = resp_status.json()['status']
             except requests.exceptions.JSONDecodeError as e:
                 try: st.warning(resp_status.text)
@@ -89,8 +87,8 @@ def _open_edit_view(transaction):
     st.title("Edit Transaction")
     # print headers
     col_headers = ['Amount', 'Account', 'Name', "Date Authorized", "Category"]
-    modal_cols = st.columns((1, 1, 2, 2, 1))
-    for col, header in zip(modal_cols, col_headers):
+    cols = st.columns((1, 1, 2, 2, 1))
+    for col, header in zip(cols, col_headers):
         col.write(header)
     
     # parse transaction data
@@ -101,11 +99,11 @@ def _open_edit_view(transaction):
     category = transaction['category']
     
     # print transaction data
-    for col, val in zip(modal_cols, (amount, account, name, date, category)):
+    for col, val in zip(cols, (amount, account, name, date, category)):
                         col.write(val)
     
     # Show Edit Options
-    cat_dropdown, _, apply_but, cancel_but = st.columns((1,2,1,1))
+    cat_dropdown, _, apply_but, cancel_but = st.columns((2,1,1,1))
     manual_cat = cat_dropdown.selectbox( 'Change Category to:', categories, args = (transaction,))
     apply_but.button("Apply", on_click=_apply_edit, args=(transaction, manual_cat))
     cancel_but.button("Cancel", on_click=_cancel_edit)
@@ -126,14 +124,13 @@ def _apply_edit(transaction, category):
 # | Show Transactions (category specific) |
 # +---------------------------------------+---------------------------------
 # Setup 
-modal = Modal(key="Transaction Modal", title="Transaction")
 total = 0   
 
 # Pring Headers
 title = st.empty()
 
 cols_size_1 = (1, 3, 2, 2) # numbers represent width
-col_headers = ['Amount', 'Name', "Date", "Action"]
+col_headers = ['Amount', 'Name', "Date", ""]
 for col, header in zip(st.columns(cols_size_1), col_headers):
     col.write(header)
 
@@ -147,11 +144,9 @@ for i, t in enumerate(trans):
     for col, val in zip(cols, (amount, name, date)):
         col.write(val)
     total += float(amount)
-    with cols[3]:
-        view, edit = st.columns(2, gap="small")
-        view_phold = view.empty()
+    edit = cols[3]
+    with edit:
         edit_phold = edit.empty()
-        view = view_phold.button("View", key=f"view_{i}")
         edit = edit_phold.button("Edit", key=f"edit_{i}")
 
     # Keep Editin if already editing
@@ -159,36 +154,10 @@ for i, t in enumerate(trans):
         if (name == st.session_state.edit_transaction['name'] and 
             t['amount'] == st.session_state.edit_transaction['amount']):
             _open_edit_view(st.session_state.edit_transaction)
-    
-    # Detailed View popup (modal popup)
-    if view:
-            with modal.container():
-                cols_size_2 = (1, 1, 2, 2, 1) # numbers represent width
-                col_headers = ['ID', 'Amount', 'Account', 'Name', "Date Authorized", "Category"]
-                modal_cols = st.columns(cols_size_2)
-                # print headers
-                for col, header in zip(modal_cols, col_headers):
-                    col.write(header)
-                # print detailed transaciton
-                for col, val in zip(modal_cols, (t['_id'],amount, t['account'], name, date, t['category'])):
-                    col.write(val)
     # Open Edit view
     if edit:
         _open_edit_view(t)
 
 with title.container():
     cat = 'Uncategorized' if category == 'N/A' else category
-    st.title(f"{cat}: ${total:,}")
-
-                # manual_category = st.selectbox(
-                #     'Manual Category',
-                #     categories, on_change=_keep_state)
-                # apply = st.button("Apply Category")
-                # if apply:
-                #     t['category'] = manual_category
-                #     logger.info(f"Categorizing transaction ({t['_id']}): {manual_category}")
-                #     mongo.set_transaction(t)
-                
-            # modal.open()
-            # button_phold.empty()  #  remove button
-    
+    st.title(f"{cat}: $ {total:,.2f}")

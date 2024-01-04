@@ -5,6 +5,7 @@ flask
 
 
 # general
+pydantic
 python-dotenv==0.20.0
 pyyaml==6.0
 plaid_python==16.0.0
